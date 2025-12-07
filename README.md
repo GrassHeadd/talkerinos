@@ -1,6 +1,6 @@
 # Talkerinos
 
-A tiny place on the internet for me to yap, rant, and brain-dump.  
+A tiny place on the internet for me to yap, rant, and brain-dump.
 Frontend is a separate app – this repo is the Go backend that powers it.
 
 ---
@@ -11,49 +11,104 @@ Talkerinos is a minimal blog engine, I write posts (probably overshare).
 
 ---
 
-## Features (v1)
+## Features
 
-- To be determined lol
+- Create, read, update, delete blog posts
+- Draft system (publish when ready)
+- Get posts by ID or slug
 
 ---
 
 ## Tech Stack
 
-### Language / Runtime
-- **Go** – latest stable (1.22+)
+- **Go** – 1.22+
+- **Gin** – web framework
+- **PostgreSQL** – database (hosted on Supabase)
+- **sqlc** – type-safe SQL
+- **golang-migrate** – database migrations
+- **Docker** – containerized deployment
 
-### Web Framework
-- **Gin** – fast, minimal, great for JSON APIs
+---
 
-### Database
-- **PostgreSQL** – even for a solo blog; good practice for real systems
+## Quick Start
 
-### DB Access
-- **sqlc** – write raw SQL, get type-safe Go code generated
-- **golang-migrate** – schema migrations (`CREATE TABLE`, `ALTER TABLE`, etc.)
+```bash
+# Install dependencies
+go mod download
 
-### Auth
-- **JWT** (access token only, for now)
-- **bcrypt** password hashing (`golang.org/x/crypto/bcrypt`)
+# Run locally
+go run ./cmd/api
 
-### Config
-- Env-based config → `Config` struct:
-  - DB URL
-  - HTTP port
-  - JWT secret
-- Just `os.Getenv` + tiny helper functions (no heavy config lib)
+# Run migrations
+make migrate-up
+```
 
-### Logging
-- **log/slog** (std lib) for now
-- Can upgrade to **uber-go/zap** later for structured JSON logs
+---
 
-### Infra / Dev
-- **Docker** – containerize the API
-- **docker-compose** – run API + Postgres locally
+## Environment Variables
+
+Create a `.env` file:
+
+```
+PORT=8080
+DB_URL=postgres://user:pass@host:5432/dbname
+ALLOWED_ORIGINS=http://localhost:3000,https://yourfrontend.com
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/v1/blog` | List published posts |
+| GET | `/v1/blog/drafts` | List draft posts |
+| GET | `/v1/blog/:id` | Get post by ID |
+| GET | `/v1/blog/slug/:slug` | Get post by slug |
+| POST | `/v1/blog` | Create post |
+| PUT | `/v1/blog/:id` | Update post |
+| DELETE | `/v1/blog/:id` | Delete post |
+
+---
+
+## Project Structure
+
+```
+talkerinos/
+├── cmd/api/
+│   └── main.go              # Entry point
+├── internal/
+│   ├── database/            # sqlc generated
+│   ├── handler/             # HTTP handlers
+│   └── router/              # Route setup
+├── sql/
+│   ├── schema/              # Migrations
+│   └── queries/             # SQL queries
+├── Dockerfile
+├── docker-compose.yml
+├── Makefile
+└── sqlc.yaml
+```
+
+---
+
+## Development
+
+```bash
+# Run locally
+go run ./cmd/api
+
+# Run with Docker
+docker compose up
+
+# Rebuild after changes
+docker compose up --build
+```
 
 ---
 
 ## Why this exists
 
-I talk a lot.  
+I talk a lot.
 Now my Go backend can listen.
