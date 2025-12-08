@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"talkerinos/internal/handler"
+	"talkerinos/internal/middleware"
 )
 
 func New(h *handler.Handler) *gin.Engine {
@@ -22,7 +23,7 @@ func New(h *handler.Handler) *gin.Engine {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     strings.Split(allowedOrigins, ","),
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-API-Key"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -34,13 +35,17 @@ func New(h *handler.Handler) *gin.Engine {
 
 	v1 := router.Group("/v1")
 	{
+		//public
 		v1.GET("/blog", h.ListPosts)
-		v1.GET("/blog/drafts", h.ListDrafts)
+
 		v1.GET("/blog/:id", h.GetPost)
 		v1.GET("/blog/slug/:slug", h.GetPostBySlug)
-		v1.POST("/blog", h.AddPosts)
-		v1.PUT("/blog/:id", h.UpdatePost)
-		v1.DELETE("/blog/:id", h.DeletePost)
+
+		//private
+		v1.GET("/blog/drafts", middleware.RequireAPIKey(), h.ListDrafts)
+		v1.POST("/blog", middleware.RequireAPIKey(), h.AddPosts)
+		v1.PUT("/blog/:id", middleware.RequireAPIKey(), h.UpdatePost)
+		v1.DELETE("/blog/:id", middleware.RequireAPIKey(), h.DeletePost)
 	}
 
 	return router
